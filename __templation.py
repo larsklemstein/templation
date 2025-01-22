@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Simple templating tool
+Rather simple templating tool. The template file must follow jinja2 syntax
+while the data source is either a file (in json, yaml or shell kv format) or
+the environment.
 
 """
 
@@ -16,7 +18,6 @@ import sys
 from typing import Any, Dict  # , List, Tuple, Callable
 
 from jinja2 import Template
-import yaml
 
 __LOG_LEVEL_DEFAULT = logging.INFO
 
@@ -53,7 +54,8 @@ def get_prog_setup_or_exit_with_usage() -> Dict[str, Any]:
     )
 
     parser.add_argument(
-        'DATA', help='the data file using yaml syntax',
+        'DATA', nargs='?',
+        help='the data file using json, yaml or shell env format',
     )
 
     parser.add_argument(
@@ -106,21 +108,54 @@ def init_logging(setup: Dict[str, Any]) -> None:
 def run(setup: Dict[str, Any]) -> int:
     logger = logging.getLogger(__name__)
 
+    template = get_template(setup)
+    logger.debug('Got template...')
+
+    data = get_data(setup)
+    logger.debug('Got data...')
+
+    rendered = Template(template).render(**data)
+    logger.debug('Rendered...')
+
+    output_result(result)
+
+    return 0
+
+
+def get_template(setup: Dict[str, Any]) -> str:
     with open(setup['TEMPLATE']) as f:
         template = f.read()
 
+    return template
+
+
+def get_data(setup: Dict[str, Any]) -> Dict[str, Any]:
+    if not setup['DATA']:
+        return dict(os.environ)
+
     with open(setup['DATA']) as f:
-        data = yaml.safe_load(f)
+        if any(setup['DATA'].endswith(ext) for ext in ('.yaml', 'yml')):
+            import yaml
 
-    rendered = Template(template).render(**data)
+            data = yaml.safe_load(f)
+        elif setup['DATA'].endswith('.json'):
+            import json
 
+            data = json.loadf(f)
+        else:
+            from dotenv import dotenv_values
+
+            data = dotenv_values(setup['DATA'])
+
+    return data
+
+
+def output_result(setup: Dict[str, Any], rendered: str) -> None:
     if setup['outfile']:
         with open(setup['outfile'], 'wt') as f:
             print(rendered, file=f)
     else:
         print(rendered)
-
-    return 0
 
 
 if __name__ == '__main__':
