@@ -10,6 +10,7 @@ Simple templating tool
 import argparse
 import logging
 import logging.config
+import os.path
 import sys
 
 from typing import Any, Dict  # , List, Tuple, Callable
@@ -34,8 +35,14 @@ def main() -> None:
 
 
 def get_prog_setup_or_exit_with_usage() -> Dict[str, Any]:
+    prog = os.path.basename(sys.argv[0])
+
+    if prog.startswith('__'):
+        prog = prog[2:]
+        prog = os.path.splitext(prog)[0]
+
     parser = argparse.ArgumentParser(
-                description=get_prog_doc(),
+                description=get_prog_doc(), prog=prog,
                 formatter_class=argparse.RawTextHelpFormatter,
             )
 
