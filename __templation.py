@@ -9,6 +9,7 @@ the environment.
 
 # bugs and hints: lrsklemstein@gmail.com
 
+
 import argparse
 import logging
 import logging.config
@@ -60,6 +61,10 @@ def get_prog_setup_or_exit_with_usage() -> Dict[str, Any]:
 
     parser.add_argument(
         '--outfile', help='write rendered output to (default: stdout)',
+    )
+
+    parser.add_argument(
+        '--lazy', action='store_true', help='ignore undefined values',
     )
 
     log_group.add_argument(
@@ -114,10 +119,10 @@ def run(setup: Dict[str, Any]) -> int:
     data = get_data(setup)
     logger.debug('Got data...')
 
-    rendered = Template(template).render(**data)
+    rendered = get_rendered_text(setup)
     logger.debug('Rendered...')
 
-    output_result(result)
+    output_result(rendered)
 
     return 0
 
@@ -148,6 +153,15 @@ def get_data(setup: Dict[str, Any]) -> Dict[str, Any]:
             data = dotenv_values(setup['DATA'])
 
     return data
+
+
+def get_rendered_text(setup: Dict[str, Any],
+        template: str, data: Dict[str, Any]) -> str:
+    if setup['lazy']:
+        return Template(template).render(**data)
+    else:
+        return Template(template,
+                undefined=jinja2.StrictUndefined).render(**data)
 
 
 def output_result(setup: Dict[str, Any], rendered: str) -> None:
