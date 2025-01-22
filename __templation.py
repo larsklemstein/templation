@@ -138,19 +138,20 @@ def get_data(setup: Dict[str, Any]) -> Dict[str, Any]:
     if not setup['DATA']:
         return dict(os.environ)
 
-    with open(setup['DATA']) as f:
-        if any(setup['DATA'].endswith(ext) for ext in ('.yaml', 'yml')):
-            import yaml
+    if any(setup['DATA'].endswith(ext) for ext in ('.yaml', 'yml')):
+        import yaml
 
+        with open(setup['DATA']) as f:
             data = yaml.safe_load(f)
-        elif setup['DATA'].endswith('.json'):
-            import json
+    elif setup['DATA'].endswith('.json'):
+        import json
 
+        with open(setup['DATA']) as f:
             data = json.loadf(f)
-        else:
-            from dotenv import dotenv_values
+    else:
+        from dotenv import dotenv_values
 
-            data = dotenv_values(setup['DATA'])
+        data = dotenv_values(setup['DATA'])
 
     return data
 
