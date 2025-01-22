@@ -1,0 +1,14 @@
+this:
+  and: that
+
+items:
+  - 1
+  - 2
+  - 3
+
+more:
+  subgroup:
+    subitems:
+      - a
+      - b
+      - c
