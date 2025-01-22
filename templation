@@ -1,3 +1,3 @@
 #!/bin/sh
 
-pipenv run ./$0.py "$@"
+pipenv run ./__${0##*/}.py "$@"
