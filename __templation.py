@@ -18,7 +18,7 @@ import sys
 
 from typing import Any, Dict  # , List, Tuple, Callable
 
-from jinja2 import Template
+from jinja2 import Template, StrictUndefined
 
 __LOG_LEVEL_DEFAULT = logging.INFO
 
@@ -119,10 +119,10 @@ def run(setup: Dict[str, Any]) -> int:
     data = get_data(setup)
     logger.debug('Got data...')
 
-    rendered = get_rendered_text(setup)
+    rendered = get_rendered_text(setup, data)
     logger.debug('Rendered...')
 
-    output_result(rendered)
+    output_result(setup, rendered)
 
     return 0
 
@@ -156,13 +156,16 @@ def get_data(setup: Dict[str, Any]) -> Dict[str, Any]:
     return data
 
 
-def get_rendered_text(setup: Dict[str, Any],
-        template: str, data: Dict[str, Any]) -> str:
+def get_rendered_text(setup: Dict[str, Any], data) -> str:
+    template = setup['TEMPLATE']
+
+    with open(setup['TEMPLATE']) as f:
+        content = f.read()
+
     if setup['lazy']:
-        return Template(template).render(**data)
+        return Template(content).render(**data)
     else:
-        return Template(template,
-                undefined=jinja2.StrictUndefined).render(**data)
+        return Template(content, undefined=StrictUndefined).render(**data)
 
 
 def output_result(setup: Dict[str, Any], rendered: str) -> None:
