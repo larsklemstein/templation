@@ -1,3 +1,8 @@
 #!/bin/sh
 
+MYDIR=${0%/*}
+[ $MYDIR = . ] && MYDIR=$PWD
+
+cd $MYDIR
+
 pipenv run ./__${0##*/}.py "$@"
